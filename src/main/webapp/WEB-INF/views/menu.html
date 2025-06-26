@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu</title>
+</head>
+
+<style>
+    table, th, td {
+      border:1px solid black;
+    }
+</style>
+
+<body>
+
+<h1>Меню</h1>
+
+<table>
+    <tr>
+        <th>Название блюда</th>
+        <th>Цена</th>
+    </tr>
+    <tr th:each="dishDTO : ${dishDTOS}">
+        <td th:text="${dishDTO.name}"></td>
+        <td th:text="${dishDTO.price}"></td>
+    </tr>
+</table>
+
+</body>
+</html>

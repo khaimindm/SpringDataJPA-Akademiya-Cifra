@@ -5,7 +5,10 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import ru.khaimin.springcourse.models.Dish;
 import ru.khaimin.springcourse.models.Order;
+
+import java.util.List;
 
 
 @Service
@@ -33,7 +36,13 @@ public class PizzaKitchen implements KitchenService {
     @Override
     public void prepareOrder(Order order) {
         currentOrders++;
-        System.out.println("Gotovim: " + order.getDishes());
+        System.out.println("Gotovim:");
+        List<Dish> dishes = order.getDishes();
+        int number = 0;
+        for (Dish dish : dishes) {
+            number++;
+            System.out.println(number + ". " + dish.getName());
+        }
         // Имитация приготовления
         try {
             Thread.sleep(timeout);

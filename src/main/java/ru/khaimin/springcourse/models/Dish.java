@@ -6,4 +6,6 @@ public interface Dish {
     String getName();
 
     double getPrice();
+
+    String getDType();
 }

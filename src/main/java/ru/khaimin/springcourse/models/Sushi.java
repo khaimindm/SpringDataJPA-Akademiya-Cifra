@@ -1,20 +1,21 @@
 package ru.khaimin.springcourse.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+// Класс бизнес-сущности Sushi
+
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@DiscriminatorValue("japanese")
-public class Sushi extends AbstractDish {
+public class Sushi implements Dish {
 
-    @Column(name = "dtype")
-    private String dtype;
+    private int id;
+    private String name;
+    private double price;
+    private String dType;
 
 }
