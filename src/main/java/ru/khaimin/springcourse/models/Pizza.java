@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Класс бизнес-сущности Pizza
+// Бизнес-сущность Pizza
 
 @AllArgsConstructor
 @NoArgsConstructor

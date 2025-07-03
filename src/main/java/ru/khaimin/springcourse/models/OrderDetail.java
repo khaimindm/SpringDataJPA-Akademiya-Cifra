@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Map;
-
 // Бизнес-сущность OrderDetail
 
 @AllArgsConstructor
@@ -15,6 +13,9 @@ import java.util.Map;
 @Setter
 public class OrderDetail {
 
-    Map<String, Integer> orderDetail;
+    private int id;
+    private Order order;
+    private Dish dish;
+    private int quantity;
 
 }

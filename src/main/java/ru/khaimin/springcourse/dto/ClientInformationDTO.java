@@ -3,14 +3,13 @@ package ru.khaimin.springcourse.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-// Класс блюда DTO
+// DTO объект для информации о клиенте
 
 @Getter
 @Setter
-public class DishDTO {
+public class ClientInformationDTO {
 
     private int id;
     private String name;
-    private double price;
 
 }

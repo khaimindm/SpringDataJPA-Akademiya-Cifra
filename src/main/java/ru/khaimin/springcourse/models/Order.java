@@ -1,6 +1,5 @@
 package ru.khaimin.springcourse.models;
 
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,13 +8,12 @@ import lombok.Setter;
 import java.util.Date;
 import java.util.List;
 
-// Класс бизнес-сущности Order
+//Бизнес-сущность Order
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@Table(name = "order_dish")
 public class Order {
 
     private int id;
@@ -25,7 +23,7 @@ public class Order {
 
     private Client client;
 
-    private OrderDetail orderDetail;
+    private List<OrderDetail> orderDetails;
 
     private List<Dish> dishes;
 

@@ -7,17 +7,14 @@ import ru.khaimin.springcourse.entity.ClientEntity;
 import ru.khaimin.springcourse.entity.DishEntity;
 import ru.khaimin.springcourse.entity.OrderDetailEntity;
 import ru.khaimin.springcourse.entity.OrderDishEntity;
-import ru.khaimin.springcourse.models.Client;
-import ru.khaimin.springcourse.models.Dish;
-import ru.khaimin.springcourse.models.Order;
-import ru.khaimin.springcourse.models.OrderDetail;
+import ru.khaimin.springcourse.models.*;
+import ru.khaimin.springcourse.repositories.DishRepository;
 import ru.khaimin.springcourse.repositories.OrderDetailRepository;
 import ru.khaimin.springcourse.repositories.OrderDishRepository;
+import java.util.Date;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 // Сервис для заказа
 @Service
@@ -25,11 +22,14 @@ public class OrderService {
 
     private final OrderDishRepository orderDishRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final DishRepository dishRepository;
 
     @Autowired
-    public OrderService(OrderDishRepository orderDishRepository_, OrderDetailRepository orderDetailRepository_) {
+    public OrderService(OrderDishRepository orderDishRepository_, OrderDetailRepository orderDetailRepository_,
+                        DishRepository dishRepository_) {
         this.orderDishRepository = orderDishRepository_;
         this.orderDetailRepository = orderDetailRepository_;
+        this.dishRepository = dishRepository_;
     }
 
     @Transactional(readOnly = true)
@@ -55,16 +55,36 @@ public class OrderService {
             order.setClient(client);
 
             List<OrderDetailEntity> orderDetailEntities = orderDetailRepository.findByOrderDishEntity(orderDishEntity);
-            OrderDetail orderDetail = new OrderDetail();
 
-            Map<String, Integer> orderDetailMap = new LinkedHashMap<>();
+            List<OrderDetail> orderDetails = new ArrayList<>();
 
             for (OrderDetailEntity orderDetailEntity : orderDetailEntities) {
-                orderDetailMap.put(orderDetailEntity.getDishEntity().getName(), orderDetailEntity.getQuantity());
+                OrderDetail orderDetail = new OrderDetail();
+
+                orderDetail.setId(orderDetailEntity.getId());
+
+                DishEntity dishEntity = orderDetailEntity.getDishEntity();
+
+                Dish dish;
+
+                if (dishEntity.getDType().equals("pizza")) {
+                    dish = new Pizza();
+                } else {
+                    dish = new Sushi();
+                }
+
+                dish.setId(dishEntity.getId());
+                dish.setName(dishEntity.getName());
+                dish.setPrice(dishEntity.getPrice());
+                dish.setDType(dishEntity.getDType());
+
+                orderDetail.setDish(dish);
+
+                orderDetails.add(orderDetail);
             }
 
-            orderDetail.setOrderDetail(orderDetailMap);
-            order.setOrderDetail(orderDetail);
+            order.setOrderDetails(orderDetails);
+
             orders.add(order);
         }
 
@@ -72,7 +92,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void saveOrder(Order order, ClientEntity clientEntity) {
+    public void saveOrder(Order order) {
 
         List<Dish> dishes = order.getDishes();
 
@@ -82,8 +102,8 @@ public class OrderService {
         List<OrderDetailEntity> orderDetailEntities = new ArrayList<>();
 
         orderDishEntity.setDate(order.getDate());
-        orderDishEntity.setReadiness(false);
-        orderDishEntity.setOrderFullCost(getFullCostOfOrder(order));
+        orderDishEntity.setReadiness(order.isReadiness());
+        orderDishEntity.setOrderFullCost(getFullCostOfOrderByDishes(order.getDishes()));
 
         DishEntity dishEntity = new DishEntity();
 
@@ -99,14 +119,16 @@ public class OrderService {
 
         orderDishEntity.setOrderDetailEntities(orderDetailEntities);
 
+        ClientEntity clientEntity = new ClientEntity();
+        clientEntity.setId(order.getClient().getId());
+        clientEntity.setName(order.getClient().getName());
+
         orderDishEntity.setClientEntity(clientEntity);
 
         orderDishRepository.save(orderDishEntity);
-
     }
 
-    public double getFullCostOfOrder(Order order) {
-        List<Dish> dishes = order.getDishes();
+    public double getFullCostOfOrderByDishes(List<Dish> dishes) {
         double fullCostOfOrder = 0;
 
         for (Dish dish : dishes) {
@@ -114,5 +136,38 @@ public class OrderService {
         }
 
         return fullCostOfOrder;
+    }
+
+    public Order createOrderByIdSelectedDishes(List<Integer> idSelectedDishes, Client client) {
+        Order order = new Order();
+
+        order.setDate(new Date());
+        order.setReadiness(false);
+
+        List<DishEntity> dishEntities = dishRepository.findAllById(idSelectedDishes);
+        List<Dish> dishes = new ArrayList<>();
+
+        for (DishEntity dishEntity : dishEntities) {
+            Dish dish;
+
+            if (dishEntity.getDType().equals("pizza")) {
+                dish = new Pizza();
+            } else {
+                dish = new Sushi();
+            }
+
+            dish.setId(dishEntity.getId());
+            dish.setName(dishEntity.getName());
+            dish.setPrice(dishEntity.getPrice());
+            dish.setDType(dishEntity.getDType());
+
+            dishes.add(dish);
+        }
+
+        order.setOrderFullCost(getFullCostOfOrderByDishes(dishes));
+        order.setClient(client);
+        order.setDishes(dishes);
+
+        return order;
     }
 }

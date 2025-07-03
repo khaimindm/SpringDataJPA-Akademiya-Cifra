@@ -8,15 +8,23 @@ import ru.khaimin.springcourse.models.Order;
 @Service
 public class CustomerService {
 
-    @Autowired
-    PizzaKitchen pizzaKitchen;
+    private final PizzaKitchen pizzaKitchen;
+    private final OrderService orderService;
 
-    public void placeOrder(Order order) {
+    @Autowired
+    public CustomerService(PizzaKitchen pizzaKitchen_, OrderService orderService_) {
+        this.pizzaKitchen = pizzaKitchen_;
+        this.orderService = orderService_;
+    }
+
+    public boolean placeOrder(Order order) {
         if (pizzaKitchen.canAcceptOrder()) {
-            System.out.println("Prinyat zakaz ot " + order.getClient().getName());
+            orderService.saveOrder(order);
             pizzaKitchen.prepareOrder(order);
+
+            return true;
         } else {
-            System.out.println("Kuhnya peregruzhena, zakaz otklonyon");
+            return false;
         }
     }
 

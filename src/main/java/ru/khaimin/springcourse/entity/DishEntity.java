@@ -33,5 +33,4 @@ public class DishEntity {
     @OneToOne(mappedBy = "dishEntity")
     private OrderDetailEntity orderDetailEntity;
 
-
 }

@@ -4,11 +4,27 @@
     <meta charset="UTF-8">
     <title>Главная страница</title>
 </head>
+
+<style>
+    table, th, td {
+      border:1px solid black;
+    }
+</style>
+
 <body>
+<h1>Меню</h1>
 
-<h1>Главная страница</h1>
-
-<a href="menu">Меню</a>
+<form th:action="@{/transferSelections}" method="post">
+    <h3>Выберите блюда для заказа</h3>
+    <div th:each="dishDTO : ${dishDTOS}">
+        <input type="checkbox"
+               name="selectedDishes"
+               th:value="${dishDTO.id}"
+               th:id=" 'dishDTO_' + ${dishDTO.id}">
+        <label th:for=" 'dishDTO_' + ${dishDTO.id}" th:text="${dishDTO.name} + ' ' + ${dishDTO.price}"></label>
+    </div>
+    <button type="submit">Оформить заказ</button>
+</form>
 
 </body>
 </html>

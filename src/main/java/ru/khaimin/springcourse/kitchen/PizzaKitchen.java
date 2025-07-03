@@ -2,11 +2,13 @@ package ru.khaimin.springcourse.kitchen;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import ru.khaimin.springcourse.models.Dish;
 import ru.khaimin.springcourse.models.Order;
+import ru.khaimin.springcourse.services.OrderService;
 
 import java.util.List;
 
@@ -17,11 +19,18 @@ import java.util.List;
 @Getter
 public class PizzaKitchen implements KitchenService {
 
+    @Autowired
+    private OrderService orderService;
+
     //пример инициализации через параметр
     @Value("${kitchen.capacity}")
     private int capacity;
     private final long timeout;
     private int currentOrders;
+
+
+
+
 
     //TODO добавить исключения на корректные значения
     public PizzaKitchen(@Value("${kitchen.timeout}") long timeout) { // пример инициализации через контсруктор
@@ -36,13 +45,7 @@ public class PizzaKitchen implements KitchenService {
     @Override
     public void prepareOrder(Order order) {
         currentOrders++;
-        System.out.println("Gotovim:");
-        List<Dish> dishes = order.getDishes();
-        int number = 0;
-        for (Dish dish : dishes) {
-            number++;
-            System.out.println(number + ". " + dish.getName());
-        }
+
         // Имитация приготовления
         try {
             Thread.sleep(timeout);
@@ -50,6 +53,11 @@ public class PizzaKitchen implements KitchenService {
             Thread.currentThread().interrupt();
         }
         currentOrders--;
+
+        // Изменяю статус готовности заказа на true
+        order.setReadiness(true);
+        orderService.saveOrder(order);
+
         System.out.println("Zakaz gotov: " + order.getClient().getName());
     }
 
