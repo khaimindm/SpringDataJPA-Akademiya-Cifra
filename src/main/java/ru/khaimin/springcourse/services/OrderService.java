@@ -7,14 +7,18 @@ import ru.khaimin.springcourse.entity.ClientEntity;
 import ru.khaimin.springcourse.entity.DishEntity;
 import ru.khaimin.springcourse.entity.OrderDetailEntity;
 import ru.khaimin.springcourse.entity.OrderDishEntity;
-import ru.khaimin.springcourse.models.*;
+import ru.khaimin.springcourse.mapper.ClientMapper;
+import ru.khaimin.springcourse.mapper.DishMapper;
+import ru.khaimin.springcourse.mapper.OrderMapper;
+import ru.khaimin.springcourse.models.Client;
+import ru.khaimin.springcourse.models.Dish;
+import ru.khaimin.springcourse.models.Order;
+import ru.khaimin.springcourse.models.OrderDetail;
 import ru.khaimin.springcourse.repositories.DishRepository;
 import ru.khaimin.springcourse.repositories.OrderDetailRepository;
 import ru.khaimin.springcourse.repositories.OrderDishRepository;
-import java.util.Date;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 // Сервис для заказа
 @Service
@@ -22,35 +26,35 @@ public class OrderService {
 
     private final OrderDishRepository orderDishRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final DishService dishService;
     private final DishRepository dishRepository;
+    private final OrderMapper orderMapper;
+    private final ClientMapper clientMapper;
+    private final DishMapper dishMapper;
 
     @Autowired
     public OrderService(OrderDishRepository orderDishRepository_, OrderDetailRepository orderDetailRepository_,
-                        DishRepository dishRepository_) {
+                        DishService dishService_, DishRepository dishRepository_, OrderMapper orderMapper_,
+                        ClientMapper clientMapper_, DishMapper dishMapper_) {
         this.orderDishRepository = orderDishRepository_;
         this.orderDetailRepository = orderDetailRepository_;
+        this.dishService = dishService_;
         this.dishRepository = dishRepository_;
+        this.orderMapper = orderMapper_;
+        this.clientMapper = clientMapper_;
+        this.dishMapper = dishMapper_;
     }
 
     @Transactional(readOnly = true)
     public List<Order> findAllOrders() {
         List<OrderDishEntity> orderDishEntities = orderDishRepository.findAll();
-        List<Order> orders = new ArrayList<>();
+        List<Order> orders = orderMapper.toOrders(orderDishEntities);
 
-        // Понимаю, что можно автоматизировать процесс. Скорее всего через MapStruct.
-        // Пока оставляю так. В будущем разберусь и перепишу код.
         for (OrderDishEntity orderDishEntity : orderDishEntities) {
 
             Order order = new Order();
 
-            order.setId(orderDishEntity.getId());
-            order.setDate(orderDishEntity.getDate());
-            order.setReadiness(orderDishEntity.isReadiness());
-            order.setOrderFullCost(orderDishEntity.getOrderFullCost());
-
-            Client client = new Client();
-            client.setId(orderDishEntity.getClientEntity().getId());
-            client.setName(orderDishEntity.getClientEntity().getName());
+            Client client = clientMapper.toClient(orderDishEntity.getClientEntity());
 
             order.setClient(client);
 
@@ -68,15 +72,10 @@ public class OrderService {
                 Dish dish;
 
                 if (dishEntity.getDType().equals("pizza")) {
-                    dish = new Pizza();
+                    dish = dishMapper.toPizza(dishEntity);
                 } else {
-                    dish = new Sushi();
+                    dish = dishMapper.toSushi(dishEntity);
                 }
-
-                dish.setId(dishEntity.getId());
-                dish.setName(dishEntity.getName());
-                dish.setPrice(dishEntity.getPrice());
-                dish.setDType(dishEntity.getDType());
 
                 orderDetail.setDish(dish);
 
@@ -93,7 +92,6 @@ public class OrderService {
 
     @Transactional
     public void saveOrder(Order order) {
-
         List<Dish> dishes = order.getDishes();
 
         OrderDishEntity orderDishEntity = new OrderDishEntity();
@@ -103,9 +101,16 @@ public class OrderService {
 
         orderDishEntity.setDate(order.getDate());
         orderDishEntity.setReadiness(order.isReadiness());
-        orderDishEntity.setOrderFullCost(getFullCostOfOrderByDishes(order.getDishes()));
 
         DishEntity dishEntity = new DishEntity();
+
+        Map<Integer, Integer> dishesAndQuantity = new HashMap<>();
+
+        List<OrderDetail> orderDetails = order.getOrderDetails();
+
+        for (OrderDetail orderDetail : orderDetails) {
+            dishesAndQuantity.put(orderDetail.getDish().getId(), orderDetail.getQuantity());
+        }
 
         for (Dish dish : dishes) {
             dishEntity.setName(dish.getName());
@@ -116,6 +121,8 @@ public class OrderService {
             orderDetailEntity.setQuantity(1);
             orderDetailEntities.add(orderDetailEntity);
         }
+
+        orderDishEntity.setOrderFullCost(getFullCostOfOrderByDishesAndQuantity(order.getDishes(), dishesAndQuantity));
 
         orderDishEntity.setOrderDetailEntities(orderDetailEntities);
 
@@ -128,17 +135,23 @@ public class OrderService {
         orderDishRepository.save(orderDishEntity);
     }
 
-    public double getFullCostOfOrderByDishes(List<Dish> dishes) {
+    public double getFullCostOfOrderByDishesAndQuantity(List<Dish> dishes, Map<Integer, Integer> dishesAndQuantity) {
         double fullCostOfOrder = 0;
 
         for (Dish dish : dishes) {
-            fullCostOfOrder += dish.getPrice();
+            int quantityOfDishes = dishesAndQuantity.get(dish.getId());
+
+            double totalAmountOfDish = dish.getPrice() * quantityOfDishes;
+
+            fullCostOfOrder += totalAmountOfDish;
         }
 
         return fullCostOfOrder;
     }
 
-    public Order createOrderByIdSelectedDishes(List<Integer> idSelectedDishes, Client client) {
+    @Transactional(readOnly = true)
+    public Order createOrderByIdSelectedDishes(List<Integer> idSelectedDishes, Client client,
+                                               Map<Integer, Integer> dishesAndQuantity) {
         Order order = new Order();
 
         order.setDate(new Date());
@@ -151,23 +164,33 @@ public class OrderService {
             Dish dish;
 
             if (dishEntity.getDType().equals("pizza")) {
-                dish = new Pizza();
+                dish = dishMapper.toPizza(dishEntity);
             } else {
-                dish = new Sushi();
+                dish = dishMapper.toSushi(dishEntity);
             }
-
-            dish.setId(dishEntity.getId());
-            dish.setName(dishEntity.getName());
-            dish.setPrice(dishEntity.getPrice());
-            dish.setDType(dishEntity.getDType());
 
             dishes.add(dish);
         }
 
-        order.setOrderFullCost(getFullCostOfOrderByDishes(dishes));
+        order.setOrderFullCost(getFullCostOfOrderByDishesAndQuantity(dishes, dishesAndQuantity));
         order.setClient(client);
+
+        List<OrderDetail> orderDetails = new ArrayList<>();
+
+        for (Dish dish : dishes) {
+            OrderDetail orderDetail = new OrderDetail();
+
+            orderDetail.setOrder(order);
+            orderDetail.setDish(dish);
+            orderDetail.setQuantity(dishesAndQuantity.get(dish.getId()));
+
+            orderDetails.add(orderDetail);
+        }
+
+        order.setOrderDetails(orderDetails);
         order.setDishes(dishes);
 
         return order;
     }
+
 }

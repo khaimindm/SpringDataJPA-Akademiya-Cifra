@@ -9,16 +9,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.khaimin.springcourse.dto.ClientInformationDTO;
 import ru.khaimin.springcourse.dto.DishDTO;
+import ru.khaimin.springcourse.dto.OrderDTO;
+import ru.khaimin.springcourse.dto.OrderDetailDTO;
+import ru.khaimin.springcourse.mapper.ClientMapper;
+import ru.khaimin.springcourse.mapper.DishMapper;
+import ru.khaimin.springcourse.mapper.OrderMapper;
 import ru.khaimin.springcourse.models.Client;
-import ru.khaimin.springcourse.models.Dish;
 import ru.khaimin.springcourse.models.Order;
 import ru.khaimin.springcourse.services.ClientService;
-import ru.khaimin.springcourse.services.CustomerService;
 import ru.khaimin.springcourse.services.DishService;
 import ru.khaimin.springcourse.services.OrderService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Класс контроллер для домашней страницы
 
@@ -26,17 +31,22 @@ import java.util.List;
 public class IndexController {
 
     private final DishService dishService;
-    private final CustomerService customerService;
+    private final ClientService clientService;
     private final OrderService orderService;
-    private final ClientService  clientService;
+    private final ClientMapper clientMapper;
+    private final DishMapper dishMapper;
+    private final OrderMapper orderMapper;
 
     @Autowired
-    public IndexController(DishService dishService_, CustomerService customerService_, OrderService orderService_,
-                           ClientService clientService_) {
+    public IndexController(DishService dishService_, ClientService clientService_, OrderService orderService_,
+                           ClientMapper clientMapper_, DishMapper dishMapper_,
+                           OrderMapper orderMapper_) {
         this.dishService = dishService_;
-        this.customerService = customerService_;
-        this.orderService = orderService_;
         this.clientService = clientService_;
+        this.orderService = orderService_;
+        this.clientMapper = clientMapper_;
+        this.dishMapper = dishMapper_;
+        this.orderMapper = orderMapper_;
     }
 
     // Получаю все блюда из базы данных и передаю их используя объекты DishDTO в представление
@@ -44,36 +54,59 @@ public class IndexController {
     public String showMenu(Model model) {
 
         // Не знаю, можно ли напрямую к сервисам обращаться в контроллерах. Буду благодарен за комментарий
-        List<Dish> dishes = dishService.findAllDishes();
-        List<DishDTO> dishDTOS = new ArrayList<>();
-
-        for (Dish dish : dishes) {
-            DishDTO dishDTO = new DishDTO();
-
-            dishDTO.setId(dish.getId());
-            dishDTO.setName(dish.getName());
-            dishDTO.setPrice(dish.getPrice());
-
-            dishDTOS.add(dishDTO);
-        }
-
+        List<DishDTO> dishDTOS = dishMapper.toDishDTOS(dishService.findAllDishes());
         model.addAttribute("dishDTOS", dishDTOS);
-
         return "index";
     }
 
     @PostMapping("/transferSelections")
-    public String transferSelections(@RequestParam("selectedDishes") List<Integer> idSelectedDishes, Model model,
+    public String transferSelections(@RequestParam("selectedDishes") List<Integer> idSelectedDishes,
+                                     @RequestParam Map<String, String> dishesAndQuantityParams,
                                      RedirectAttributes redirectAttributes) {
-        Client client = clientService.getClientById(1);
-        Order order = orderService.createOrderByIdSelectedDishes(idSelectedDishes, client);
+        Client client = clientMapper.toClient(clientService.getClientEntityById(1));
 
-        ClientInformationDTO clientInformationDTO = new ClientInformationDTO();
-        clientInformationDTO.setId(client.getId());
-        clientInformationDTO.setName(client.getName());
+        // Для конвертации Map<String, String> в  Map<Integer, Integer>
+        Map<Integer, Integer> dishesAndQuantity = new HashMap<>();
 
-        if (customerService.placeOrder(order)) {
-            redirectAttributes.addFlashAttribute("clientInformationDTO",  clientInformationDTO);
+        for (Integer idSelectedDish : idSelectedDishes) {
+            String quantityParam = dishesAndQuantityParams.get("quantity_" + idSelectedDish);
+            int quantity = 1;
+
+            try {
+                quantity = Integer.parseInt(quantityParam);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException(e);
+            }
+
+            dishesAndQuantity.put(idSelectedDish, quantity);
+        }
+
+        Order order = orderService.createOrderByIdSelectedDishes(idSelectedDishes, client, dishesAndQuantity);
+
+        ClientInformationDTO clientInformationDTO = clientMapper.toClientInformationDTO(client);
+
+        // Получаю список всех объектов DishDTO в данном заказе
+        List<DishDTO> dishDTOS = dishMapper.toDishDTOS(order.getDishes());
+
+        List<OrderDetailDTO> orderDetailDTOS = new ArrayList<>();
+
+        for (DishDTO dishDTO : dishDTOS) {
+            OrderDetailDTO orderDetailDTO = new OrderDetailDTO();
+            orderDetailDTO.setDishDTO(dishDTO);
+            orderDetailDTO.setPrice(dishDTO.getPrice());
+
+            // Устанавливаю в OrderDetailDTO количество, получая из Map<Integer, Integer> dishesAndQuantity по id блюда
+            orderDetailDTO.setQuantity(dishesAndQuantity.get(dishDTO.getId()));
+            orderDetailDTOS.add(orderDetailDTO);
+        }
+
+        // Получаю объект OrderDTO из Order
+        OrderDTO orderDTO = orderMapper.toOrderDTO(order);
+        orderDTO.setClientInformationDTO(clientInformationDTO);
+
+        if (clientService.placeOrder(order)) {
+            redirectAttributes.addFlashAttribute("orderDTO", orderDTO);
+            redirectAttributes.addFlashAttribute("orderDetailDTOS", orderDetailDTOS);
             return "redirect:/order_waiting";
         } else {
             return "redirect:/order_error";

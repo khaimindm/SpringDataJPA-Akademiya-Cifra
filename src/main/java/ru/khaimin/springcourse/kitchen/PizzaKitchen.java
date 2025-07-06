@@ -6,11 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import ru.khaimin.springcourse.models.Dish;
 import ru.khaimin.springcourse.models.Order;
 import ru.khaimin.springcourse.services.OrderService;
-
-import java.util.List;
 
 
 @Service
@@ -27,9 +24,6 @@ public class PizzaKitchen implements KitchenService {
     private int capacity;
     private final long timeout;
     private int currentOrders;
-
-
-
 
 
     //TODO добавить исключения на корректные значения
@@ -57,8 +51,6 @@ public class PizzaKitchen implements KitchenService {
         // Изменяю статус готовности заказа на true
         order.setReadiness(true);
         orderService.saveOrder(order);
-
-        System.out.println("Zakaz gotov: " + order.getClient().getName());
     }
 
 }
