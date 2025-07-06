@@ -1,24 +1,21 @@
 package ru.khaimin.springcourse.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+// Бизнес-сущность Pizza
+
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@DiscriminatorValue("pizza")
-public class Pizza extends AbstractDish {
+public class Pizza implements Dish {
 
-    @Column(name = "dtype")
-    private String dtype;
+    private int id;
+    private String name;
+    private double price;
+    private String dType;
 
-    public Pizza() {
-    }
-
-    public Pizza(String name_, double price_) {
-        super(name_, price_);
-    }
 }

@@ -3,25 +3,31 @@ package ru.khaimin.springcourse.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.khaimin.springcourse.entity.DishEntity;
+import ru.khaimin.springcourse.mapper.DishMapper;
 import ru.khaimin.springcourse.models.Pizza;
-import ru.khaimin.springcourse.repositories.PizzaRepository;
+import ru.khaimin.springcourse.repositories.DishRepository;
 
 import java.util.List;
 
 // Сервис для пиццы
+
 @Service
-@Transactional(readOnly = true)
 public class PizzaService {
 
-    private final PizzaRepository pizzaRepository;
+    private final DishRepository dishRepository;
+    private final DishMapper dishMapper;
 
     @Autowired
-    public PizzaService(PizzaRepository pizzaRepository) {
-        this.pizzaRepository = pizzaRepository;
+    public PizzaService(DishRepository dishRepository, DishMapper dishMapper_) {
+        this.dishRepository = dishRepository;
+        this.dishMapper = dishMapper_;
     }
 
+    @Transactional(readOnly = true)
     public List<Pizza> findAllPizzas() {
-        return pizzaRepository.findAllByDtype("pizza");
-    }
+        List<DishEntity> dishEntities = dishRepository.findByDType("pizza");
 
+        return dishMapper.toPizzas(dishEntities);
+    }
 }

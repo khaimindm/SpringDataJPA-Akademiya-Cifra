@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница ожидания заказа</title>
+    <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<h1>Заказ успешно оформлен</h1>
+
+<p>Принят заказ от клиента: <b><span th:text="${orderDTO.clientInformationDTO.name}"></span></p></b>
+<div>
+    <p>Детали заказа: </p>
+    <table style="text-align:center;">
+        <tr>
+            <th>Название блюда</th>
+            <th>Цена</th>
+            <th>Количество</th>
+        </tr>
+        <tr th:each="orderDetailDTO : ${orderDetailDTOS}">
+            <td th:text="${orderDetailDTO.dishDTO.name}"></td>
+            <td th:text="${orderDetailDTO.price}"></td>
+            <td th:text="${orderDetailDTO.quantity}"></td>
+        </tr>
+    </table>
+    <b><p>Общая стоимость заказа: <span th:text="${orderDTO.orderFullCost}"></span></p></b>
+</div>
+</body>
+</html>
