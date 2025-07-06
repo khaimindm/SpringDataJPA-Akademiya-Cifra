@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ResultsController {
 
-    @GetMapping("/order_waiting")
+    @GetMapping("/order")
     public String showOrderWaitingPage() {
-        return "order_waiting";
+        return "order";
     }
 
     @GetMapping("/order_error")

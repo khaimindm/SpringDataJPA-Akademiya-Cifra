@@ -7,7 +7,7 @@ import ru.khaimin.springcourse.models.Client;
 
 import java.util.List;
 
-// Интерфейс для маппинга Client -> ClientInformationDTO
+// Интерфейс для маппинга
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ClientMapper {
@@ -15,6 +15,10 @@ public interface ClientMapper {
     ClientDTO toClientDTO(Client client);
 
     List<ClientDTO> toClientDTOS(List<Client> clients);
+
+//    Client toClient(ClientEntity clientEntity);
+//
+//    List<Client> toClients(List<ClientEntity> clientEntities);
 
     Client toClientFromClientDTO(ClientDTO clientDTO);
 

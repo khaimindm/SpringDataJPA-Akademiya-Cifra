@@ -2,14 +2,12 @@ package ru.khaimin.springcourse;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients
-public class SpringcourseApplication {
+public class ClientServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringcourseApplication.class, args);
+        SpringApplication.run(ClientServiceApplication.class, args);
     }
 
 }
