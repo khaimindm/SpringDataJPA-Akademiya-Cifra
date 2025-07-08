@@ -25,15 +25,17 @@ public class ClientService {
     }
 
     public OrderDTO placeOrder(Order order, ClientDTO clientDTO, List<DishDTO> dishDTOS) {
-        if (kitchenServiceClient.canAcceptOrder()) {
-            OrderDTO orderDTO = orderMapper.toOrderDTO(order);
 
-            orderDTO.setClientDTO(clientDTO);
-            orderDTO.setDishDTOS(dishDTOS);
+        OrderDTO orderDTO = orderMapper.toOrderDTO(order);
+
+        orderDTO.setClientDTO(clientDTO);
+        orderDTO.setDishDTOS(dishDTOS);
+
+        if (kitchenServiceClient.canAcceptOrder()) {
 
             return kitchenServiceClient.processOrderInKitchen(orderDTO);
         } else {
-            return null;
+            return orderDTO;
         }
     }
 

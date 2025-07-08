@@ -115,23 +115,14 @@ public class OrderServiceController {
             orderResponsDTOS.add(orderResponseDTO);
         }
 
-        System.out.println("Before: " + order.isReadiness());
-
         OrderDTO orderDTOResponseFromKitchenService = clientService.placeOrder(order, clientDTO, dishDTOS);
 
 
         order.setReadiness(orderDTOResponseFromKitchenService.isReadiness());
-        System.out.println("After: " + order.isReadiness());
 
-//        orderService.saveOrder(order);
         orderService.updateOrderReadinessById(order.isReadiness(), order.getId());
 
-        if (orderDTOResponseFromKitchenService != null) {
-            return orderResponsDTOS;
-        } else {
-            return null;
-        }
-
+        return orderResponsDTOS;
     }
 
     @GetMapping("/{orderId}")
