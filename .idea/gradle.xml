@@ -10,6 +10,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/ClientService" />
+            <option value="$PROJECT_DIR$/KitchenService" />
+            <option value="$PROJECT_DIR$/OrderService" />
+            <option value="$PROJECT_DIR$/common" />
           </set>
         </option>
       </GradleProjectSettings>

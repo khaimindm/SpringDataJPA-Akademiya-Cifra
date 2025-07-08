@@ -2,27 +2,38 @@ package ru.khaimin.springcourse.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.khaimin.springcourse.kitchen.PizzaKitchen;
+import ru.khaimin.springcourse.dto.ClientDTO;
+import ru.khaimin.springcourse.dto.DishDTO;
+import ru.khaimin.springcourse.dto.OrderDTO;
+import ru.khaimin.springcourse.mapper.OrderMapper;
 import ru.khaimin.springcourse.models.Order;
+import ru.khaimin.springcourse.services.clients.KitchenServiceClient;
+
+import java.util.List;
 
 // Сервис клиентов
 
 @Service
 public class ClientService {
-
-    private final PizzaKitchen pizzaKitchen;
+    private final KitchenServiceClient kitchenServiceClient;
+    private final OrderMapper orderMapper;
 
     @Autowired
-    public ClientService(PizzaKitchen pizzaKitchen_) {
-        this.pizzaKitchen = pizzaKitchen_;
+    public ClientService(KitchenServiceClient kitchenServiceClient_, OrderMapper orderMapper_) {
+        this.kitchenServiceClient = kitchenServiceClient_;
+        this.orderMapper = orderMapper_;
     }
 
-    public boolean placeOrder(Order order) {
-        if (pizzaKitchen.canAcceptOrder()) {
-            pizzaKitchen.prepareOrder(order);
-            return true;
+    public OrderDTO placeOrder(Order order, ClientDTO clientDTO, List<DishDTO> dishDTOS) {
+        if (kitchenServiceClient.canAcceptOrder()) {
+            OrderDTO orderDTO = orderMapper.toOrderDTO(order);
+
+            orderDTO.setClientDTO(clientDTO);
+            orderDTO.setDishDTOS(dishDTOS);
+
+            return kitchenServiceClient.processOrderInKitchen(orderDTO);
         } else {
-            return false;
+            return null;
         }
     }
 

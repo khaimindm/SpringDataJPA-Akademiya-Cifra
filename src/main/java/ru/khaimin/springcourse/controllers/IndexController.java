@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.khaimin.springcourse.dto.ClientDTO;
 import ru.khaimin.springcourse.dto.DishDTO;
+import ru.khaimin.springcourse.dto.OrderRequestDTO;
+import ru.khaimin.springcourse.dto.OrderResponseDTO;
 import ru.khaimin.springcourse.mapper.ClientMapper;
 import ru.khaimin.springcourse.mapper.DishMapper;
 import ru.khaimin.springcourse.mapper.OrderMapper;
-import ru.khaimin.springcourse.request.OrderRequest;
-import ru.khaimin.springcourse.response.OrderResponse;
 import ru.khaimin.springcourse.services.clients.ClientServiceClient;
 import ru.khaimin.springcourse.services.clients.OrderServiceClient;
 
@@ -98,17 +98,22 @@ public class IndexController {
             e.printStackTrace();
         }
 
-        OrderRequest orderRequest = new OrderRequest();
-        orderRequest.setIdSelectedDishesJson(idSelectedDishesJson);
-        orderRequest.setClientIdString(Integer.toString(clientDTO.getId()));
-        orderRequest.setClientName(clientDTO.getName());
-        orderRequest.setDishesAndQuantityJson(dishesAndQuantityJson);
+        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        orderRequestDTO.setIdSelectedDishesJson(idSelectedDishesJson);
+        orderRequestDTO.setClientIdString(Integer.toString(clientDTO.getId()));
+        orderRequestDTO.setClientName(clientDTO.getName());
+        orderRequestDTO.setDishesAndQuantityJson(dishesAndQuantityJson);
 
-        List<OrderResponse> orderResponses = orderServiceClient.processOrder(orderRequest);
+        List<OrderResponseDTO> orderResponsDTOS = orderServiceClient.processOrder(orderRequestDTO);
 
-        if (orderResponses != null) {
+        String orderIdString = orderResponsDTOS.getFirst().getOrderId();
+
+        String orderFullCost = orderServiceClient.getOrderFullCostByOrderId(orderIdString);
+
+        if (orderResponsDTOS != null) {
             redirectAttributes.addFlashAttribute("clientDTO", clientDTO);
-            redirectAttributes.addFlashAttribute("orderResponses", orderResponses);
+            redirectAttributes.addFlashAttribute("orderResponsDTOS", orderResponsDTOS);
+            redirectAttributes.addFlashAttribute("orderFullCost", orderFullCost);
             return "redirect:/order";
         } else {
             return "redirect:/order_error";

@@ -1,4 +1,4 @@
-package ru.khaimin.springcourse.request;
+package ru.khaimin.springcourse.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,9 +7,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OrderRequest {
+public class OrderRequestDTO {
+
     private String idSelectedDishesJson;
     private String clientIdString;
     private String clientName;
     private String dishesAndQuantityJson;
+
 }

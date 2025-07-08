@@ -35,8 +35,6 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0'
     runtimeOnly 'com.h2database:h2:2.3.232'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
-    implementation project(':common')
 }
 
 test {

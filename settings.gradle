@@ -1,3 +1,5 @@
 rootProject.name = 'SpringDataJpa'
 include 'ClientService'
 include 'OrderService'
+include 'common'
+include 'KitchenService'

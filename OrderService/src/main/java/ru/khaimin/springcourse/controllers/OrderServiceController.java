@@ -4,18 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.khaimin.springcourse.dto.ClientDTO;
-import ru.khaimin.springcourse.dto.DishDTO;
-import ru.khaimin.springcourse.dto.OrderDTO;
-import ru.khaimin.springcourse.dto.OrderDetailDTO;
+import ru.khaimin.springcourse.dto.*;
 import ru.khaimin.springcourse.entity.DishEntity;
 import ru.khaimin.springcourse.mapper.ClientMapper;
 import ru.khaimin.springcourse.mapper.DishMapper;
 import ru.khaimin.springcourse.mapper.OrderMapper;
 import ru.khaimin.springcourse.models.Client;
 import ru.khaimin.springcourse.models.Order;
-import ru.khaimin.springcourse.request.OrderRequest;
-import ru.khaimin.springcourse.response.OrderResponse;
 import ru.khaimin.springcourse.services.ClientService;
 import ru.khaimin.springcourse.services.DishService;
 import ru.khaimin.springcourse.services.OrderService;
@@ -58,24 +53,24 @@ public class OrderServiceController {
     }
 
     @PostMapping("/processOrder")
-    public List<OrderResponse> processOrder(@RequestBody OrderRequest orderRequest) {
+    public List<OrderResponseDTO> processOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         List<Integer> idSelectedDishes = null;
 
         try {
             // Преобразую JSON в List<Integer>
-            idSelectedDishes = objectMapper.readValue(orderRequest.getIdSelectedDishesJson(), new TypeReference<List<Integer>>() {
+            idSelectedDishes = objectMapper.readValue(orderRequestDTO.getIdSelectedDishesJson(), new TypeReference<List<Integer>>() {
             });
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        Client client = new Client(Integer.parseInt(orderRequest.getClientIdString()), orderRequest.getClientName());
+        Client client = new Client(Integer.parseInt(orderRequestDTO.getClientIdString()), orderRequestDTO.getClientName());
 
         Map<Integer, Integer> dishesAndQuantity = null;
         try {
             // Преобразую JSON в Map<Integer, Integer>
-            dishesAndQuantity = objectMapper.readValue(orderRequest.getDishesAndQuantityJson(),
+            dishesAndQuantity = objectMapper.readValue(orderRequestDTO.getDishesAndQuantityJson(),
                     new TypeReference<Map<Integer, Integer>>() {
                     });
         } catch (IOException e) {
@@ -108,21 +103,54 @@ public class OrderServiceController {
 
         List<DishEntity> dishEntities = orderService.getDishEntitiesByIds(idSelectedDishes);
 
-        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<OrderResponseDTO> orderResponsDTOS = new ArrayList<>();
         for (DishEntity dishEntity : dishEntities) {
-            OrderResponse orderResponse = new OrderResponse();
-            orderResponse.setDishName(dishEntity.getName());
-            orderResponse.setDishPrice(String.valueOf(dishEntity.getPrice()));
-            orderResponse.setDishQuantity(String.valueOf(dishesAndQuantity.get(dishEntity.getId())));
+            OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
 
-            orderResponses.add(orderResponse);
+            orderResponseDTO.setOrderId(Integer.toString(order.getId()));
+            orderResponseDTO.setDishName(dishEntity.getName());
+            orderResponseDTO.setDishPrice(String.valueOf(dishEntity.getPrice()));
+            orderResponseDTO.setDishQuantity(String.valueOf(dishesAndQuantity.get(dishEntity.getId())));
+
+            orderResponsDTOS.add(orderResponseDTO);
         }
 
-        if (clientService.placeOrder(order)) {
-            return orderResponses;
+        System.out.println("Before: " + order.isReadiness());
+
+        OrderDTO orderDTOResponseFromKitchenService = clientService.placeOrder(order, clientDTO, dishDTOS);
+
+
+        order.setReadiness(orderDTOResponseFromKitchenService.isReadiness());
+        System.out.println("After: " + order.isReadiness());
+
+//        orderService.saveOrder(order);
+        orderService.updateOrderReadinessById(order.isReadiness(), order.getId());
+
+        if (orderDTOResponseFromKitchenService != null) {
+            return orderResponsDTOS;
         } else {
             return null;
         }
 
+    }
+
+    @GetMapping("/{orderId}")
+    public String getOrderFullCostByOrderId(@PathVariable("orderId") String orderID) {
+        int orderIdInt = 0;
+        try {
+            orderIdInt = Integer.parseInt(orderID);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        String result;
+        try {
+            result = String.valueOf(orderService.getOrderFullCostByOrderId(orderIdInt));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
     }
 }

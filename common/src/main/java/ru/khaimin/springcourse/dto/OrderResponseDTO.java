@@ -1,4 +1,4 @@
-package ru.khaimin.springcourse.response;
+package ru.khaimin.springcourse.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,8 +7,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OrderResponse {
+public class OrderResponseDTO {
+
+    private String orderId;
     private String dishName;
     private String dishPrice;
     private String dishQuantity;
+
 }

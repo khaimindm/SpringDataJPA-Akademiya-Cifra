@@ -3,7 +3,6 @@ package ru.khaimin.springcourse.controllers;
 // Класс контроллер для клиента в микросервисе
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ public class ClientMicroserviceController {
     @GetMapping("/{clientId}")
     public ClientDTO getClientDTOByClientId(@PathVariable String clientId) {
 
-        int clientIdInt =0;
+        int clientIdInt = 0;
 
         try {
             clientIdInt = Integer.parseInt(clientId);

@@ -13,7 +13,7 @@
 //@Primary
 //@Setter
 //@Getter
-//public class PizzaKitchen implements KitchenService {
+//public class PizzaIKitchen implements IKitchenService {
 //
 //    @Autowired
 //    private OrderService orderService;
@@ -26,7 +26,7 @@
 //
 //
 //    //TODO добавить исключения на корректные значения
-//    public PizzaKitchen(@Value("${kitchen.timeout}") long timeout) { // пример инициализации через контсруктор
+//    public PizzaIKitchen(@Value("${kitchen.timeout}") long timeout) { // пример инициализации через контсруктор
 //        this.timeout = timeout;
 //    }
 //

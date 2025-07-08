@@ -37,8 +37,4 @@ public class OrderDishEntity {
 
     @OneToMany(mappedBy = "orderDishEntity")
     private List<OrderDetailEntity> orderDetailEntities;
-
-//    @ManyToOne
-//    @JoinColumn(name = "order_dish_client_id", referencedColumnName = "client_id")
-//    private ClientEntity clientEntity;
 }

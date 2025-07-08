@@ -45,7 +45,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void saveOrder(Order order) {
+    public int saveOrder(Order order) {
         List<Dish> dishes = order.getDishes();
 
         OrderDishEntity orderDishEntity = new OrderDishEntity();
@@ -83,6 +83,7 @@ public class OrderService {
         orderDishEntity.setClientId(order.getClient().getId());
 
         orderDishRepository.save(orderDishEntity);
+        return orderDishEntity.getId();
     }
 
     public double getFullCostOfOrderByDishesAndQuantity(List<Dish> dishes, Map<Integer, Integer> dishesAndQuantity) {
@@ -140,6 +141,10 @@ public class OrderService {
         order.setOrderDetails(orderDetails);
         order.setDishes(dishes);
 
+        int orderId = saveOrder(order);
+
+        order.setId(orderId);
+
         return order;
     }
 
@@ -149,13 +154,18 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public double getOrderFullCostByOrderId(Integer orderId) {
+    public double getOrderFullCostByOrderId(int orderId) {
         OrderDishEntity orderDishEntity = orderDishRepository.findById(orderId).orElse(null);
 
-        if (orderDishEntity != null){
+        if (orderDishEntity != null) {
             return orderDishEntity.getOrderFullCost();
         } else {
             return 0;
         }
+    }
+
+    @Transactional
+    public void updateOrderReadinessById(boolean isReadiness, Integer orderId) {
+        orderDishRepository.updateOrderReadinessById(isReadiness, orderId);
     }
 }

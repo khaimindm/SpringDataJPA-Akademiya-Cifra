@@ -12,7 +12,7 @@
 <body>
 <h1>Заказ успешно оформлен</h1>
 
-<p>Принят заказ от клиента: <b><span th:text="${clientDTO.name}"></span></p></b>
+<p>Принят заказ от клиента: <b><span th:text="${clientDTO.name}"></span></b></p>
 <div>
     <p>Детали заказа: </p>
     <table style="text-align:center;">
@@ -21,12 +21,13 @@
             <th>Цена</th>
             <th>Количество</th>
         </tr>
-        <tr th:each="orderResponse : ${orderResponses}">
-            <td th:text="${orderResponse.dishName}"></td>
-            <td th:text="${orderResponse.dishPrice}"></td>
-            <td th:text="${orderResponse.dishQuantity}"></td>
+        <tr th:each="orderResponseDTO : ${orderResponsDTOS}">
+            <td th:text="${orderResponseDTO.dishName}"></td>
+            <td th:text="${orderResponseDTO.dishPrice}"></td>
+            <td th:text="${orderResponseDTO.dishQuantity}"></td>
         </tr>
     </table>
+    <p><b>Общая стоимость заказа: <span th:text="${orderFullCost}"></span></b></p>
 </div>
 </body>
 </html>
